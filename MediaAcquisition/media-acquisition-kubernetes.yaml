@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: t09-django-service
+spec:
+  selector:
+    app: t09-django
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: t09-django-deployment
+  labels:
+    app: t09-django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: t09-django
+  template:
+    metadata:
+      labels:
+        app: t09-django
+    spec:
+      containers:
+        - name: t09-django
+          image: gitlab.sdu.dk:5050/semester-project-e2021/team-09/media-acquisition/django:latest
+          ports:
+            - containerPort: 8000
+      imagePullSecrets:
+      - name: registry-credentials #registry-credentidals er ikke i SDU klusteret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: t09-mysql
+spec:
+  selector:
+    app: t09-mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: t09-mysql
+  labels:
+    app: t09-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: t09-mysql
+  template:
+    metadata:
+      labels:
+        app: t09-mysql
+    spec:
+      containers:
+        - name: t09-mysql
+          image: gitlab.sdu.dk:5050/semester-project-e2021/team-09/media-acquisition/mysql
+          ports:
+          - containerPort: 3306
+      imagePullSecrets:
+      - name: registry-credentials #registry-credentidals er ikke i SDU klusteret
